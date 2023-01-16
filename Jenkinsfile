@@ -1,7 +1,12 @@
 pipeline {
     agent any
     stages {
-        stage('Chekout') {
+        stage('List directory') {
+            steps {
+                ls
+            }
+        }
+        stage('Build & Deploy') {
             steps {
                 sh deployment.sh
             }

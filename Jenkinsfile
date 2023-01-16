@@ -8,7 +8,7 @@ pipeline {
         }
         stage('Build & Deploy') {
             steps {
-                sh deployment.sh
+                sh ./deployment.sh
             }
         }
     }

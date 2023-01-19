@@ -563,9 +563,6 @@ class OpenADRClient:
         report_back_duration = report_request['report_specifier'].get('report_back_duration')
         granularity = report_request['report_specifier']['granularity']
 
-        #logger.info(">>>>> Garvish: No create Report")
-        #return False
-
         # Check if this report actually exists
         report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
         if not report:
@@ -678,15 +675,12 @@ class OpenADRClient:
                                                             report_payload=report_payload))
 
         else:
-            #logger.debug(">>>>> Garvish: update_report Else")
             for r_id in report_request['r_ids']:
                 report_callback = self.report_callbacks[(report_specifier_id, r_id)]
                 result = report_callback()
                 if asyncio.iscoroutine(result):
-                    #logger.debug(">>>>> Garvish: update_report asyncio.iscoroutine")
                     result = await result
                 if isinstance(result, (int, float)):
-                    #logger.debug(">>>>> Garvish: update_report isinstance")
                     result = [(datetime.now(timezone.utc), result)]
                 for dt, value in result:
                     #logger.debug(f"Adding {dt}, {value} to report")
@@ -952,7 +946,6 @@ class OpenADRClient:
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
-        logger.info(">>>>> Garvish: Now polling for new messages")
         response_type, response_payload = await self.poll()
         if response_type is None:
             return

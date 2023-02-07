@@ -149,7 +149,6 @@ class OpenADRClient:
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the polling interval.")
             self.poll_frequency = timedelta(hours=24)
-        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
 
         self.scheduler.add_job(self._poll,
                                trigger='cron',
@@ -997,12 +996,20 @@ class OpenADRClient:
     async def _ensure_client_session(self):
         if not self.client_session:
             headers = {'content-type': 'application/xml'}
+            client_timeout = aiohttp.ClientTimeout(sock_connect=5, sock_read=10)
             if self.cert_path:
                 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                 ssl_context.load_verify_locations(self.ca_file)
                 ssl_context.load_cert_chain(self.cert_path, self.key_path, self.passphrase)
                 ssl_context.check_hostname = self.check_hostname
                 connector = aiohttp.TCPConnector(ssl=ssl_context)
-                self.client_session = aiohttp.ClientSession(connector=connector, headers=headers)
+                self.client_session = aiohttp.ClientSession(
+                    connector=connector,
+                    headers=headers,
+                    timeout=client_timeout
+                )
             else:
-                self.client_session = aiohttp.ClientSession(headers=headers)
+                self.client_session = aiohttp.ClientSession(
+                    headers=headers,
+                    timeout=client_timeout
+                )

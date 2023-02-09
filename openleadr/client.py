@@ -151,11 +151,16 @@ class OpenADRClient:
             self.poll_frequency = timedelta(hours=24)
 
         self.scheduler.add_job(self._poll,
-                               trigger='interval',
-                               seconds=self.poll_frequency.total_seconds())
+                               trigger='cron',
+                               misfire_grace_time=None,
+                               max_instances=4,
+                               **cron_config)
         self.scheduler.add_job(self._event_cleanup,
                                trigger='interval',
+                               misfire_grace_time=None,
+                               max_instances=4,
                                seconds=300)
+
         self.scheduler.start()
 
     async def stop(self):
@@ -609,9 +614,12 @@ class OpenADRClient:
         callback = partial(self.update_report, report_request_id=report_request_id)
 
         reporting_interval = report_back_duration or granularity
+        reporting_cron_config = utils.cron_config(reporting_interval, randomize_seconds=self.allow_jitter)
         job = self.scheduler.add_job(func=callback,
                                      trigger='cron',
-                                     **utils.cron_config(reporting_interval))
+                                     misfire_grace_time=None,
+                                     max_instances=4,
+                                     **reporting_cron_config)
 
         self.report_requests.append({'report_request_id': report_request_id,
                                      'report_specifier_id': report_specifier_id,
@@ -674,7 +682,7 @@ class OpenADRClient:
                 if isinstance(result, (int, float)):
                     result = [(datetime.now(timezone.utc), result)]
                 for dt, value in result:
-                    logger.info(f"Adding {dt}, {value} to report")
+                    #logger.debug(f"Adding {dt}, {value} to report")
                     report_payload = objects.ReportPayload(r_id=r_id, value=value)
                     intervals.append(objects.ReportInterval(dtstart=dt,
                                                             report_payload=report_payload))
@@ -865,7 +873,13 @@ class OpenADRClient:
                 if received_event:
                     if received_event['event_descriptor']['modification_number'] == modification_number:
                         # Re-submit the same opt type as we already had previously
-                        result = self.responded_events[event_id]
+                        
+                        if event_id in self.responded_events:
+                            result = self.responded_events[event_id]
+                        else:
+                            # Wait for the result of the on_event
+                            self.received_events.append(event)
+                            result = self.on_event(event)
                     else:
                         # Replace the event with the fresh copy
                         utils.pop_by(self.received_events, 'event_descriptor.event_id', event_id)

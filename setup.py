@@ -19,11 +19,8 @@ from setuptools import setup
 with open('README.md', 'r', encoding='utf-8') as file:
     long_description = file.read()
 
-with open('VERSION', 'r', encoding='utf-8') as file:
-    version = file.read().strip()
-
 setup(name='openleadr',
-      version='0.5.29',
+      version='0.5.30',
       description='Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -33,5 +30,5 @@ setup(name='openleadr',
       packages=['openleadr', 'openleadr.service'],
       python_requires='>=3.7.0',
       include_package_data=True,
-      install_requires=['xmltodict', 'aiohttp', 'apscheduler', 'jinja2', 'signxml==2.10.1'],
+      install_requires=['xmltodict==0.13.0', 'aiohttp>=3.8.3,<4.0.0', 'apscheduler>=3.10.0,<4.0.0', 'jinja2>=3.1.2,<4.0.0', 'signxml>=3.1.0,<3.2.0'],
       entry_points={'console_scripts': ['fingerprint = openleadr.fingerprint:show_fingerprint']})

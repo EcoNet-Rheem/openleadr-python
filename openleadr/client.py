@@ -150,6 +150,8 @@ class OpenADRClient:
                            "Will use 24 hours as the polling interval.")
             self.poll_frequency = timedelta(hours=24)
 
+        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
+        
         self.scheduler.add_job(self._poll,
                                trigger='cron',
                                misfire_grace_time=None,

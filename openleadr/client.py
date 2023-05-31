@@ -615,8 +615,7 @@ class OpenADRClient:
 
         callback = partial(self.update_report, report_request_id=report_request_id)
 
-        #reporting_interval = report_back_duration or granularity
-        reporting_interval = granularity
+        reporting_interval = report_back_duration or granularity
         reporting_cron_config = utils.cron_config(reporting_interval, randomize_seconds=self.allow_jitter)
         job = self.scheduler.add_job(func=callback,
                                      trigger='cron',

@@ -701,7 +701,7 @@ class OpenADRClient:
             report_interval = report_back_duration.total_seconds()
             sampling_interval = granularity.total_seconds()
             expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
-            if len(outgoing_report.intervals) == expected_len:
+            if len(outgoing_report.intervals) >= expected_len:
                 logger.info("The report is now complete with all the values. Will queue for sending.")
                 await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
